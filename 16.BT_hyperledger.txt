@@ -1,0 +1,68 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract BusinessNetwork {
+    struct Asset {
+        uint id;
+        string name;
+        address owner;
+        uint value;
+    }
+
+    mapping(uint => Asset) public assets;
+    uint public assetCount = 0;
+
+    event AssetCreated(uint id, string name, address indexed owner, uint value);
+    event AssetTransferred(uint id, address indexed oldOwner, address indexed newOwner);
+
+    // Function to create a new asset
+    function createAsset(string memory _name, uint _value) public {
+        assetCount++;
+        assets[assetCount] = Asset(assetCount, _name, msg.sender, _value);
+        emit AssetCreated(assetCount, _name, msg.sender, _value);
+    }
+
+    // Function to get asset details
+    function getAsset(uint _id) public view returns (uint, string memory, address, uint) {
+        Asset memory asset = assets[_id];
+        require(asset.id != 0, "Asset does not exist.");
+        return (asset.id, asset.name, asset.owner, asset.value);
+    }
+
+    // Function to transfer asset ownership
+    function transferAsset(uint _id, address _newOwner) public {
+        Asset storage asset = assets[_id];
+        require(asset.id != 0, "Asset does not exist.");
+        require(asset.owner == msg.sender, "Only the asset owner can transfer ownership.");
+        address oldOwner = asset.owner;
+        asset.owner = _newOwner;
+        emit AssetTransferred(_id, oldOwner, _newOwner);
+    }
+
+    // View function to get all assets owned by a specific address
+    function getAssetsByOwner(address _owner) public view returns (Asset[] memory) {
+        uint ownerCount = 0;
+        for (uint i = 1; i <= assetCount; i++) {
+            if (assets[i].owner == _owner) {
+                ownerCount++;
+            }
+        }
+
+        Asset[] memory result = new Asset[](ownerCount);
+        uint counter = 0;
+        for (uint i = 1; i <= assetCount; i++) {
+            if (assets[i].owner == _owner) {
+                result[counter] = assets[i];
+                counter++;
+            }
+        }
+        return result;
+    }
+}
+
+
+
+
+/*
+**Hyperledger** is an open-source collaborative project launched by the Linux Foundation to support the development of blockchain-based distributed ledgers, particularly for business applications. It provides a set of frameworks, libraries, and tools designed for creating secure, scalable, and modular blockchain solutions across various industries. Notable frameworks under Hyperledger include **Hyperledger Fabric**, **Hyperledger Sawtooth**, and **Hyperledger Besu**, each offering different architectures and capabilities tailored to enterprise needs for permissions, privacy, and customization.
+*/
